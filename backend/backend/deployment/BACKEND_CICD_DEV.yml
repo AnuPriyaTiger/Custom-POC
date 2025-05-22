@@ -1,0 +1,127 @@
+trigger:
+  branches:
+    include:
+      - refs/heads/predev
+  paths:
+    include:
+      - project_name/backend/*
+    exclude:
+      - project_name/frontend/*
+  batch: True
+
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/heads/predev
+
+variables:
+  - group: project_name_App_KV_Development
+  - group: project_name_App_UAT
+  - group: project_name_App_Common_Variables
+
+jobs:
+
+  - job: Linting
+    steps:
+    - checkout: self
+    - script: |
+        cd src/project_name/app/backend
+        python -m pip install pylint
+        find . -type f -name "*.py" | xargs pylint
+      continueOnError: true
+      displayName: 'Run lint tests'
+
+  - job: Formatting
+    steps:
+    - checkout: self
+    - script: |
+        python -m pip install black
+        black . --diff | tee BE_formatting_result.txt
+      continueOnError: true
+      displayName: 'Run Black - Code Formatter'
+    - task: CopyFiles@2
+      condition: always()
+      inputs: 
+        contents: BE_formatting_result.txt
+        targetFolder: formatting-result
+    - task: PublishBuildArtifacts@1
+      condition: always()
+      inputs:
+        pathToPublish: formatting-result
+        artifactName: formatting_result
+
+  - job: Unittest_Coverage_Report
+    steps:
+    - checkout: self
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.12'
+      inputs:
+        versionSpec: '3.12'
+    - task: CmdLine@2
+      displayName: 'Unit Testcases'
+      inputs:
+        workingDirectory: src/project_name/app/backend
+        script: |
+          python -m pip install --upgrade pip
+          echo CLIENTID=$(CLIENTID) >> project_name/.env
+          echo CLIENTSECRET=$(CLIENTSECRET) >> project_name/.env
+          echo GIST_DB_SCHEMA=$(GIST_DB_SCHEMA) >> project_name/.env
+          echo DEBUG=$(DEBUG) >> project_name/.env
+          echo ALLOWED_HOSTS=$(ALLOWED_HOSTS) >> project_name/.env
+          echo CONFIGURATION_AZURE_URL=$(CONFIGURATION_AZURE_URL) >> project_name/.env
+          echo azure_schema_name=$(azure_schema_name) >> project_name/.env
+          echo KEY_VAULT_NAME=$(KEY_VAULT_NAME) >> project_name/.env
+          echo QUEST_PUBLISH_AZURE_URL=$(QUEST_PUBLISH_AZURE_URL) >> project_name/.env
+          echo STORE_NAME=$(STORE_NAME) >> project_name/.env
+          echo AUTHORITY=$(AUTHORITY) >> project_name/.env
+          echo AZURE_SUBSCRIPTION_ID=$(AZURE_SUBSCRIPTION_ID) >> project_name/.env
+          echo AZURE_TENANT_ID=$(AZURE_TENANT_ID) >> project_name/.env
+          echo ISSUER=$(ISSUER) >> project_name/.env
+          echo SETTINGS_MODULE=$(SETTINGS_MODULE) >> project_name/.env
+          export GIST_DB_SCHEMA=test
+          pip install -r requirements.txt
+          pip install coverage
+          pip install parameterized
+          pytest --cov-report term-missing --cov-report xml:coverage.xml
+
+    - task: PublishCodeCoverageResults@1
+      displayName: Publish coverage results
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: 'src/project_name/app/backend/coverage.xml'
+  
+  - job: Build & Push Docker Image
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+      - task: UsePythonVersion@0
+        displayName: Use Python 3.12
+        inputs:
+          versionSpec: 3.12
+    - task: Docker@2
+      displayName: docker build & push
+      inputs:
+        containerRegistry: 'DEV-PNRND-DPC-EUS2-ACR'
+        repository: 'dpc-acr-app'
+        command: 'buildAndPush'
+        Dockerfile: 'Dockerfile'
+        buildContext: '.'
+        tags: 'v1'
+        build_args: --build-arg CLIENTID=$(CLIENTID) --build-arg CLIENTSECRET=$(CLIENTSECRET) --build-arg GIST_DB_SCHEMA=$(GIST_DB_SCHEMA)   --build-arg AZURE_TENANT_ID=$(AZURE_TENANT_ID) --build-arg KEY_VAULT_NAME=$(KEY_VAULT_NAME) --build-arg SETTINGS_MODULE=$(SETTINGS_MODULE) --build-arg ALLOWED_HOSTS=$(ALLOWED_HOSTS) --build-arg STORE_NAME=$(STORE_NAME) --build-arg AZURE_SUBSCRIPTION_ID=$(AZURE_SUBSCRIPTION_ID) --build-arg AUTHORITY=$(AUTHORITY) --build-arg REDIRECT_URI=$(REDIRECT_URI) --build-arg POST_LOGOUT_REDIRECT_URI=$(POST_LOGOUT_REDIRECT_URI) --build-arg LOGIN_URL=$(LOGIN_URL) --build-arg LOGOUT_URL_MS=$(LOGOUT_URL_MS) --build-arg LOGOUT_URL=$(LOGOUT_URL) --build-arg REACT_URL=$(REACT_URL) --build-arg ISSUER=$(ISSUER)
+
+  - job: Deploy to App Service
+    dependsOn: Build & Push Docker Image
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: webApp deploy
+      inputs:
+        azureSubscription: 'DEV-PNRND-DPC-EUS2'
+        appName:  'mw-odda-project_name-simulator-uat-api'
+        containers: 'pnrndpdapeus2devcr.azurecr.io/dpc-acr-app:v1'
+        
+
+

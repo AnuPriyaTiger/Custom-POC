@@ -1,0 +1,15 @@
+version: "1" 
+services:
+  app_backend:
+    image: image_path.azurecr.io/backend_image_name:latest
+    ports:
+      - "8000"
+    restart: always
+    stdin_open: true
+    tty: true
+
+  frontend:
+    restart: unless-stopped
+    image: image_path.azurecr.io/frontend_image_name:latest
+    ports:
+      - 80:80
