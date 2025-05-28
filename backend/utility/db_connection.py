@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Database URL: Update this to match your environment if necessary
-DATABASE_URL = "sqlite:///./test.db"  # SQLite database file
+DATABASE_URL = "sqlite:///./mac_test.db"  # SQLite database file
 
 # Create the SQLAlchemy engine
 engine = create_engine(

@@ -69,4 +69,5 @@ async def fetch_widget_data(widget_id: int, db: Session = Depends(get_db)):
 @router.post("/layout")
 def save_dashboard_layout_endpoint(positions: dict, db: Session = Depends(get_db)):
     layout = store_dashboard_layout(db, positions)
+    breakpoint()
     return {"message": "Layout saved successfully", "layout": layout}
