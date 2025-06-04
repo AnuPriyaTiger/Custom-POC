@@ -1,7 +1,16 @@
+import os
 from sqlalchemy.orm import Session
 from apps.models.dashboard import Dashboard
 from apps.models.widget import Widget
+from apps.models.data import Data
+from suggest_widget import Suggestwidgets
+from dotenv import load_dotenv
 
+load_dotenv()
+
+api_key=os.getenv("api_key")
+provider=os.getenv("provider")
+db_name=os.getenv("db_name")
 
 def fetch_dashboard(db: Session):
     # Placeholder logic; replace with your actual user-specific widget filtering
@@ -41,3 +50,7 @@ def save_dashboard_layout(db: Session, positions: dict):
     db.commit()
     db.refresh(dashboard)
     return dashboard
+
+def fetch_recomm_charts(db:Session):
+    obj=Suggestwidgets(api_key,provider,db_name)
+    return obj.run_auto_gen_description(['data'])

@@ -12,6 +12,7 @@ import LandingPage from "./landing_page";
 import MenuBar from "./components/MenuBar";
 import { fetchDashboard } from "./utils/api";
 import DashboardPage from "./dashboard_page";
+import RecomnchartsConfig from "./Recomn-charts";
 
 const { Header, Sider, Content } = Layout;
 
@@ -95,6 +96,7 @@ const App = () => {
                 }
               />
               <Route path="/configuration" element={<DashboardConfig />} />
+              <Route path="/Recomn-charts" element={<RecomnchartsConfig />} />
               <Route path="/widget" element={<WidgetConfig />} />
             </Routes>
           </Content>

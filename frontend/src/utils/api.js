@@ -55,6 +55,11 @@ export const getWidgetData = async (id) => {
     return response.data;
 };
 
+export const fetchRecomnCharts = async () => {
+    const response = await apiClient.get('/dashboard/Recomn-charts');
+    return response.data;
+};
+
 
 
 // http://127.0.0.1:8000/api/dashboard/fetch-widget-data/1

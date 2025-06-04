@@ -32,6 +32,7 @@ const MenuBar = ({ dashboards }) => {
       children: dashboards,
     },
     { key: "configuration", icon: <SettingOutlined />, label: "Configure" },
+    { key: "Recomn-charts", icon: <WechatOutlined />, label: "Recomn-charts" },
     { key: "widget", icon: <ContainerOutlined />, label: "Widget" },
     { key: "Chat", icon: <WechatOutlined />, label: "Chat" },
     { key: "Admin", icon: <UserOutlined />, label: "Admin" },

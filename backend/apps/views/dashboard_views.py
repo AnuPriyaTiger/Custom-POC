@@ -6,7 +6,8 @@ from sqlalchemy import text
 from apps.services.dashboard_service import (
     get_dashboard,
     get_widget_data,
-    store_dashboard_layout
+    store_dashboard_layout,
+    get_recomm_charts
 )
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -70,3 +71,8 @@ async def fetch_widget_data(widget_id: int, db: Session = Depends(get_db)):
 def save_dashboard_layout_endpoint(positions: dict, db: Session = Depends(get_db)):
     layout = store_dashboard_layout(db, positions)
     return {"message": "Layout saved successfully", "layout": layout}
+
+@router.get("/recomn-charts")
+def get_recommended_charts(db: Session = Depends(get_db)):
+    return get_recomm_charts(db)
+

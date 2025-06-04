@@ -1,7 +1,8 @@
 from apps.repository.dashboard_repository import (
     fetch_dashboard,
     fetch_widget_data,
-    save_dashboard_layout
+    save_dashboard_layout,
+    fetch_recomm_charts
 )
 
 def get_dashboard(db):
@@ -12,3 +13,6 @@ def get_widget_data(db, widget_id):
 
 def store_dashboard_layout(db, positions):
     return save_dashboard_layout(db, positions)
+
+def get_recomm_charts(db):
+    return fetch_recomm_charts(db)
